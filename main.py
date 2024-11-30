@@ -1,6 +1,4 @@
 from backtracking_solver import solve_sudoku
-from genetic_solver import genetic_algorithm
-
 
 def print_board(board):
     """Helper function to print a Sudoku board."""
@@ -34,12 +32,3 @@ if __name__ == "__main__":
         print_board(puzzle_copy)
     else:
         print("No solution exists using Backtracking Algorithm.")
-
-    # Solve using Genetic Algorithm
-    print("Solving with Genetic Algorithm...")
-    solution = genetic_algorithm(puzzle)
-    if solution:
-        print("Solved Puzzle:")
-        print_board(solution)
-    else:
-        print("No solution found using Genetic Algorithm.")
