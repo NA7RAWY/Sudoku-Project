@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 def is_valid(board, row, col, num):
     """Check if placing `num` at board[row][col] is valid."""
     # Check the row
@@ -32,6 +31,3 @@ def solve_sudoku(board):
                         board[row][col] = 0  # Backtrack
                 return False  # No valid number found, backtrack
     return True
-=======
-print("backtraking")
->>>>>>> e00d4e046ada908f4f0debf0c65715e4707de52c
