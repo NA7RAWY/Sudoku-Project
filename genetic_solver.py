@@ -142,4 +142,8 @@ def genetic_algorithm(puzzle, n=9, population_size=100, generations=1000):
 ]
 puzzle = [[0, 0, 0, 4], [0, 0, 0, 0], [0, 2, 3, 0], [0, 0, 0, 0]]  # Example 4x4 puzzle
 result = genetic_algorithm(puzzle, n=len(puzzle))
+<<<<<<< HEAD
 #print_board(result)"""
+=======
+#print_board(result)"""
+>>>>>>> 9f4e1776e56612bf3db1b5bde5b11b832adfce09
