@@ -112,7 +112,7 @@ def genetic_algorithm(puzzle, n, population_size=100, generations=1000):
         # Check if we have a perfect solution (fitness == n * n)
         if current_fitness == n * n*3:  # Perfect fitness score
             print("Found perfect solution!")
-            return population[0]
+            return population[0], generation + 1
 
         # Create the next generation
         next_generation = []

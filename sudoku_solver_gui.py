@@ -1,0 +1,247 @@
+import os
+import sys
+import tkinter as tk
+from tkinter import ttk, messagebox, simpledialog
+from time import time
+from backtracking_solver import solve_sudoku as solve_with_backtracking, is_valid
+from genetic_solver import genetic_algorithm
+
+
+class SudokuSolverGUI:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Sudoku Solver")
+        self.grid_size = 9  # Default grid size
+        self.entries = []
+
+        # Welcome message
+        self.welcome_label = tk.Label(self.root, text="Welcome to Sudoku Solver", font=("Arial", 16), fg="blue")
+        self.welcome_label.pack(pady=10)
+
+        # Create a frame for the Sudoku grid
+        self.grid_frame = tk.Frame(self.root, bg="black", relief="solid", bd=2)
+        self.grid_frame.pack(pady=10)
+
+        # Create a frame for controls
+        self.control_frame = tk.Frame(self.root)
+        self.control_frame.pack(pady=10)
+
+        # Algorithm selection dropdown
+        self.algorithm_var = tk.StringVar(value="Backtracking")
+        self.algorithm_label = tk.Label(self.control_frame, text="Select Algorithm:")
+        self.algorithm_label.grid(row=0, column=0, padx=5)
+        self.algorithm_menu = ttk.OptionMenu(
+            self.control_frame, self.algorithm_var, "Backtracking", "Backtracking", "Genetic Algorithm"
+        )
+        self.algorithm_menu.grid(row=0, column=1, padx=5)
+
+        # Solve button
+        self.solve_button = tk.Button(self.control_frame, text="Solve", command=self.solve_puzzle, bg="green", fg="white")
+        self.solve_button.grid(row=1, column=0, columnspan=2, pady=10)
+
+        # Clear button
+        self.clear_button = tk.Button(self.control_frame, text="Clear", command=self.clear_puzzle, bg="red", fg="white")
+        self.clear_button.grid(row=2, column=0, columnspan=2, pady=5)
+
+        # Load puzzle button
+        self.puzzle_button = tk.Button(self.control_frame, text="Load Puzzle", command=self.load_puzzle, bg="blue", fg="white")
+        self.puzzle_button.grid(row=3, column=0, columnspan=2, pady=5)
+
+        # Make your puzzle button
+        self.make_your_puzzle_button = tk.Button(self.control_frame, text="Make Your Puzzle", command=self.make_your_puzzle, bg="purple", fg="white")
+        self.make_your_puzzle_button.grid(row=4, column=0, columnspan=2, pady=5)
+
+        # Return to Main Menu button
+        self.main_menu_button = tk.Button(self.control_frame, text="Return to Main Menu", command=self.return_to_main_menu, bg="gray", fg="white")
+        self.main_menu_button.grid(row=5, column=0, columnspan=2, pady=5)
+
+        # Performance metrics label
+        self.metrics_label = tk.Label(self.root, text="Performance Metrics: ", font=("Arial", 12), fg="black")
+        self.metrics_label.pack(pady=10)
+
+    def create_grid(self, grid_size):
+        """Create a Sudoku grid dynamically based on the grid size."""
+        # Clear the existing grid
+        for widget in self.grid_frame.winfo_children():
+            widget.destroy()
+
+        self.grid_size = grid_size
+        self.entries = []
+
+        # Define subgrid size based on the grid size
+        if grid_size == 9:
+            subgrid_rows, subgrid_cols = 3, 3
+        elif grid_size == 6:
+            subgrid_rows, subgrid_cols = 3, 2
+        elif grid_size == 4:
+            subgrid_rows, subgrid_cols = 2, 2
+
+        for row in range(self.grid_size):
+            row_entries = []
+            for col in range(self.grid_size):
+                # Create grid entries with no border for 4x4 or appropriate border for 6x6 and 9x9
+                entry = tk.Entry(self.grid_frame, width=2, font=("Arial", 16), justify="center", bg="white")
+                padx = 1 if grid_size == 4 else 5  # Padding for grid sizes 6x6 and 9x9
+                pady = 1 if grid_size == 4 else 5  # Padding for grid sizes 6x6 and 9x9
+
+                # Apply borders for the correct subgrid divisions
+                if grid_size == 4:
+                    if (row % 2 == 0 and row != 0) or (col % 2 == 0 and col != 0):
+                        entry.config(bd=1)  # Thicker border for sub-grid divisions
+                elif grid_size == 6:
+                    if (row % subgrid_rows == 0 and row != 0) or (col % subgrid_cols == 0 and col != 0):
+                        entry.config(bd=1)  # Thicker border for sub-grid divisions
+                elif grid_size == 9:
+                    if (row % subgrid_rows == 0 and row != 0) or (col % subgrid_cols == 0 and col != 0):
+                        entry.config(bd=1)  # Thicker border for sub-grid divisions
+
+                entry.grid(row=row, column=col, padx=padx, pady=pady)
+                entry.bind("<KeyRelease>", self.validate_input)
+                row_entries.append(entry)
+            self.entries.append(row_entries)
+
+
+    def get_puzzle(self):
+        """Retrieve the current puzzle from the grid."""
+        puzzle = []
+        for row_entries in self.entries:
+            row = []
+            for entry in row_entries:
+                value = entry.get().strip()
+                row.append(int(value) if value.isdigit() else 0)
+            puzzle.append(row)
+        return puzzle
+
+    def display_solution(self, solution):
+        """Display the solved puzzle on the grid."""
+        for row in range(self.grid_size):
+            for col in range(self.grid_size):
+                self.entries[row][col].delete(0, tk.END)
+                self.entries[row][col].insert(0, str(solution[row][col]))
+
+    def clear_puzzle(self):
+        """Clear the Sudoku grid."""
+        for row_entries in self.entries:
+            for entry in row_entries:
+                entry.delete(0, tk.END)
+        self.metrics_label.config(text="Performance Metrics: ")
+
+    def load_puzzle(self):
+        """Prompt the user to select the grid size and load a predefined puzzle."""
+        grid_size = simpledialog.askinteger(
+            "Choose Grid Size", "Enter grid size (4, 6, or 9):", parent=self.root, minvalue=4, maxvalue=9
+        )
+
+        if grid_size not in [4, 6, 9]:
+            messagebox.showerror("Error", "Invalid grid size selected.")
+            return
+
+        self.create_grid(grid_size)
+        predefined_puzzle = self.get_predefined_puzzle(grid_size)
+
+        for row in range(grid_size):
+            for col in range(grid_size):
+                value = predefined_puzzle[row][col]
+                self.entries[row][col].delete(0, tk.END)
+                if value != 0:
+                    self.entries[row][col].insert(0, str(value))
+
+    def get_predefined_puzzle(self, grid_size):
+        """Return a predefined puzzle based on the grid size."""
+        if grid_size == 4:
+            return [
+                [1, 0, 0, 4],
+                [0, 0, 3, 0],
+                [0, 1, 0, 0],
+                [3, 0, 0, 2]
+            ]
+        elif grid_size == 6:
+            return [
+                [0, 0, 0, 0, 3, 0],
+                [0, 0, 0, 5, 0, 0],
+                [0, 0, 0, 0, 0, 4],
+                [5, 0, 0, 4, 0, 0],
+                [0, 1, 0, 0, 0, 0],
+                [4, 0, 3, 0, 0, 0]
+            ]
+        elif grid_size == 9:
+            return [
+                [5, 3, 0, 0, 7, 0, 0, 0, 0],
+                [6, 0, 0, 1, 9, 5, 0, 0, 0],
+                [0, 9, 8, 0, 0, 0, 0, 6, 0],
+                [8, 0, 0, 0, 6, 0, 0, 0, 3],
+                [4, 0, 0, 8, 0, 3, 0, 0, 1],
+                [7, 0, 0, 0, 2, 0, 0, 0, 6],
+                [0, 6, 0, 0, 0, 0, 2, 8, 0],
+                [0, 0, 0, 4, 1, 9, 0, 0, 5],
+                [0, 0, 0, 0, 8, 0, 0, 7, 9]
+            ]
+
+    def make_your_puzzle(self):
+        """Allow the user to create their puzzle after selecting grid size."""
+        grid_size = simpledialog.askinteger(
+            "Choose Grid Size", "Enter grid size (4, 6, or 9):", parent=self.root, minvalue=4, maxvalue=9
+        )
+        if grid_size not in [4, 6, 9]:
+            messagebox.showerror("Error", "Invalid grid size selected.")
+            return
+        self.create_grid(grid_size)
+
+    def return_to_main_menu(self):
+        """Return to the main menu."""
+        self.root.quit()
+
+        os.execv(sys.executable, ['python'] + sys.argv)
+
+    def validate_input(self, event):
+        """Validate the input in the Sudoku grid."""
+        widget = event.widget
+        value = widget.get().strip()
+        if not (value.isdigit() and 1 <= int(value) <= 9):
+            widget.delete(0, tk.END)
+
+    def solve_puzzle(self):
+            """Solve the puzzle using the selected algorithm."""
+            puzzle = self.get_puzzle()
+            algorithm = self.algorithm_var.get()
+
+            start_time = time()  # Start timing
+
+            if algorithm == "Backtracking":
+                puzzle_copy = [row[:] for row in puzzle]
+                subgrid_rows, subgrid_cols = self.get_subgrid_dimensions(self.grid_size)
+                if solve_with_backtracking(puzzle_copy, subgrid_rows, subgrid_cols):
+                    self.display_solution(puzzle_copy)
+                    time_taken = time() - start_time
+                    self.metrics_label.config(
+                        text=f"Performance Metrics: Algorithm: Backtracking | Time Taken: {time_taken:.4f} seconds"
+                    )
+                else:
+                    messagebox.showerror("Error", "No solution exists for the given puzzle.")
+            elif algorithm == "Genetic Algorithm":
+                solution, generations = genetic_algorithm(puzzle, n=self.grid_size)
+                time_taken = time() - start_time
+                if solution:
+                    self.display_solution(solution)
+                    self.metrics_label.config(
+                        text=f"Performance Metrics: Algorithm: Genetic Algorithm | Generations: {generations} | Time Taken: {time_taken:.4f} seconds"
+                    )
+                else:
+                    messagebox.showerror("Error", "No solution found using Genetic Algorithm.")    
+
+
+    def get_subgrid_dimensions(self, grid_size):
+        """Return subgrid dimensions for the given grid size."""
+        if grid_size == 4:
+            return 2, 2
+        elif grid_size == 6:
+            return 3, 2
+        elif grid_size == 9:
+            return 3, 3
+
+
+# Main function to run the GUI
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = SudokuSolverGUI(root)
+    root.mainloop()
