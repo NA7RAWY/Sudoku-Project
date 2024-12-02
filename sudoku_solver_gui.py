@@ -79,26 +79,18 @@ class SudokuSolverGUI:
         for row in range(self.grid_size):
             row_entries = []
             for col in range(self.grid_size):
-                # Create grid entries with no border for 4x4 or appropriate border for 6x6 and 9x9
+                # Create grid entries
                 entry = tk.Entry(self.grid_frame, width=2, font=("Arial", 16), justify="center", bg="white")
-                padx = 1 if grid_size == 4 else 5  # Padding for grid sizes 6x6 and 9x9
-                pady = 1 if grid_size == 4 else 5  # Padding for grid sizes 6x6 and 9x9
 
-                # Apply borders for the correct subgrid divisions
-                if grid_size == 4:
-                    if (row % 2 == 0 and row != 0) or (col % 2 == 0 and col != 0):
-                        entry.config(bd=1)  # Thicker border for sub-grid divisions
-                elif grid_size == 6:
-                    if (row % subgrid_rows == 0 and row != 0) or (col % subgrid_cols == 0 and col != 0):
-                        entry.config(bd=1)  # Thicker border for sub-grid divisions
-                elif grid_size == 9:
-                    if (row % subgrid_rows == 0 and row != 0) or (col % subgrid_cols == 0 and col != 0):
-                        entry.config(bd=1)  # Thicker border for sub-grid divisions
+                # Add padding and borders for sub-grids
+                top_border = 2 if row % subgrid_rows == 0 and row != 0 else 1
+                left_border = 2 if col % subgrid_cols == 0 and col != 0 else 1
+                entry.grid(row=row, column=col, padx=(left_border, 1), pady=(top_border, 1))
 
-                entry.grid(row=row, column=col, padx=padx, pady=pady)
                 entry.bind("<KeyRelease>", self.validate_input)
                 row_entries.append(entry)
             self.entries.append(row_entries)
+
 
 
     def get_puzzle(self):
