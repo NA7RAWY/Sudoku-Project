@@ -35,29 +35,49 @@ class SudokuSolverGUI:
         )
         self.algorithm_menu.grid(row=0, column=1, padx=5)
 
+        # Define button dimensions
+        button_width = 20
+        button_height = 2
+
         # Solve button
-        self.solve_button = tk.Button(self.control_frame, text="Solve", command=self.solve_puzzle, bg="green", fg="white")
+        self.solve_button = tk.Button(
+            self.control_frame, text="Solve", command=self.solve_puzzle,
+            bg="green", fg="white", width=button_width, height=button_height
+        )
         self.solve_button.grid(row=1, column=0, columnspan=2, pady=10)
 
         # Clear button
-        self.clear_button = tk.Button(self.control_frame, text="Clear", command=self.clear_puzzle, bg="red", fg="white")
+        self.clear_button = tk.Button(
+            self.control_frame, text="Clear", command=self.clear_puzzle,
+            bg="red", fg="white", width=button_width, height=button_height
+        )
         self.clear_button.grid(row=2, column=0, columnspan=2, pady=5)
 
         # Load puzzle button
-        self.puzzle_button = tk.Button(self.control_frame, text="Load Puzzle", command=self.load_puzzle, bg="blue", fg="white")
+        self.puzzle_button = tk.Button(
+            self.control_frame, text="Load Puzzle", command=self.load_puzzle,
+            bg="blue", fg="white", width=button_width, height=button_height
+        )
         self.puzzle_button.grid(row=3, column=0, columnspan=2, pady=5)
 
         # Make your puzzle button
-        self.make_your_puzzle_button = tk.Button(self.control_frame, text="Make Your Puzzle", command=self.make_your_puzzle, bg="purple", fg="white")
+        self.make_your_puzzle_button = tk.Button(
+            self.control_frame, text="Make Your Puzzle", command=self.make_your_puzzle,
+            bg="purple", fg="white", width=button_width, height=button_height
+        )
         self.make_your_puzzle_button.grid(row=4, column=0, columnspan=2, pady=5)
 
         # Return to Main Menu button
-        self.main_menu_button = tk.Button(self.control_frame, text="Return to Main Menu", command=self.return_to_main_menu, bg="gray", fg="white")
+        self.main_menu_button = tk.Button(
+            self.control_frame, text="Return to Main Menu", command=self.return_to_main_menu,
+            bg="gray", fg="white", width=button_width, height=button_height
+        )
         self.main_menu_button.grid(row=5, column=0, columnspan=2, pady=5)
 
         # Performance metrics label
         self.metrics_label = tk.Label(self.root, text="Performance Metrics: ", font=("Arial", 12), fg="black")
         self.metrics_label.pack(pady=10)
+
 
     def create_grid(self, grid_size):
         """Create a Sudoku grid dynamically based on the grid size."""

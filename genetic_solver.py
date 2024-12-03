@@ -21,7 +21,7 @@ def print_board(board):
 def fitness(individual, n):
     """Calculate the fitness of the Sudoku board."""
     score = 0
-    subgrid_size = int(math.sqrt(n))
+    subgrid_height, subgrid_width = get_subgrid_size(n)
     
     # Row and Column Uniqueness
     for i in range(n):
@@ -30,38 +30,46 @@ def fitness(individual, n):
         score += row_unique + col_unique
 
     # Subgrid Uniqueness
-    for row in range(0, n, subgrid_size):
-        for col in range(0, n, subgrid_size):
-            subgrid = [individual[r][c] for r in range(row, row + subgrid_size) for c in range(col, col + subgrid_size)]
+    for row in range(0, n, subgrid_height):
+        for col in range(0, n, subgrid_width):
+            subgrid = [individual[r][c] for r in range(row, row + subgrid_height) 
+                       for c in range(col, col + subgrid_width)]
             subgrid_unique = len(set(subgrid))  # Unique numbers in the subgrid
             score += subgrid_unique
 
     return score
 
+
+
 def mutate(individual, puzzle, n, mutation_rate=0.35):
-    """Apply random mutation to an individual with increased mutation rate."""
-    subgrid_size = int(math.sqrt(n))
+    """Apply random mutation to an individual."""
+    subgrid_height, subgrid_width = get_subgrid_size(n)
     
-    for _ in range(int(mutation_rate * n * n)):  # Apply mutation to a larger proportion of the grid
+    for _ in range(int(mutation_rate * n * n)):
         row = random.randint(0, n-1)
         col = random.randint(0, n-1)
 
-        # Only mutate empty cells (value is 0)
-        if puzzle[row][col] == 0:
-            current_values = set(individual[row]) | set([individual[i][col] for i in range(n)])
+        if puzzle[row][col] == 0:  # Only mutate empty cells
+            current_values = set(individual[row]) | \
+                            set([individual[i][col] for i in range(n)]) | \
+                            set([individual[r][c] 
+                                for r in range(row // subgrid_height * subgrid_height, 
+                                                (row // subgrid_height + 1) * subgrid_height) 
+                                for c in range(col // subgrid_width * subgrid_width, 
+                                                (col // subgrid_width + 1) * subgrid_width)])
             available_values = [num for num in range(1, n+1) if num not in current_values]
             if available_values:
                 individual[row][col] = random.choice(available_values)
+
         
-        # Swap two random cells (including non-empty ones) for more exploration
-        if random.random() < 0.1:  # 10% chance to swap two values
+        # Additional swap logic for exploration
+        if random.random() < 0.1:
             row2 = random.randint(0, n-1)
             col2 = random.randint(0, n-1)
-            # Swap only if both cells are not the same
             if (row != row2 or col != col2):
                 individual[row][col], individual[row2][col2] = individual[row2][col2], individual[row][col]
-    
     return individual
+
 
 def crossover(parent1, parent2, n):
     """Perform crossover between two parents."""
@@ -110,7 +118,7 @@ def genetic_algorithm(puzzle, n, population_size=100, generations=1000):
             best_fitness = current_fitness
         
         # Check if we have a perfect solution (fitness == n * n)
-        if current_fitness == n * n*3:  # Perfect fitness score
+        if current_fitness == 3 * n * n:  # Perfect fitness score
             print("Found perfect solution!")
             return population[0], generation + 1
 
@@ -126,6 +134,13 @@ def genetic_algorithm(puzzle, n, population_size=100, generations=1000):
 
     # Return the best solution found
     return population[0] if best_fitness == n * n * 3 else None
+
+def get_subgrid_size(n):
+    """Return the height and width of subgrids for a given Sudoku size."""
+    for i in range(1, int(math.sqrt(n)) + 1):
+        if n % i == 0:
+            subgrid_height, subgrid_width = i, n // i
+    return subgrid_height, subgrid_width
 
 
 
