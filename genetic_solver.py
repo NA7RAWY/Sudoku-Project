@@ -100,7 +100,7 @@ def crossover(parent1, parent2, n):
                             child[r][c] = missing_numbers.pop(0)
     return child
 
-def genetic_algorithm(puzzle, n, population_size=100, generations=1000):
+def genetic_algorithm(puzzle, n, population_size=100, generations=2000):
     """Solve Sudoku using a Genetic Algorithm."""
     population = create_population(population_size, puzzle, n)
     
@@ -141,7 +141,3 @@ def get_subgrid_size(n):
         if n % i == 0:
             subgrid_height, subgrid_width = i, n // i
     return subgrid_height, subgrid_width
-
-
-
-

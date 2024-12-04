@@ -88,13 +88,7 @@ class SudokuSolverGUI:
         self.grid_size = grid_size
         self.entries = []
 
-        # Define subgrid size based on the grid size
-        if grid_size == 9:
-            subgrid_rows, subgrid_cols = 3, 3
-        elif grid_size == 6:
-            subgrid_rows, subgrid_cols = 3, 2
-        elif grid_size == 4:
-            subgrid_rows, subgrid_cols = 2, 2
+        subgrid_rows, subgrid_cols = self.get_subgrid_dimensions(grid_size)
 
         for row in range(self.grid_size):
             row_entries = []
@@ -111,6 +105,16 @@ class SudokuSolverGUI:
                 row_entries.append(entry)
             self.entries.append(row_entries)
 
+    def validate_input(self, event):
+        """Validate the input in the Sudoku grid."""
+        widget = event.widget
+        value = widget.get().strip()
+
+        # Determine valid inputs for the current grid size
+        valid_inputs = [str(i) for i in range(1, self.grid_size + 1)]
+
+        if value not in valid_inputs:
+            widget.delete(0, tk.END)
 
 
     def get_puzzle(self):
@@ -141,10 +145,10 @@ class SudokuSolverGUI:
     def load_puzzle(self):
         """Prompt the user to select the grid size and load a predefined puzzle."""
         grid_size = simpledialog.askinteger(
-            "Choose Grid Size", "Enter grid size (4, 6, or 9):", parent=self.root, minvalue=4, maxvalue=9
+            "Choose Grid Size", "Enter grid size (4, 6, 9, or 16):", parent=self.root, minvalue=4, maxvalue=16
         )
 
-        if grid_size not in [4, 6, 9]:
+        if grid_size not in [4, 6, 9, 16]:
             messagebox.showerror("Error", "Invalid grid size selected.")
             return
 
@@ -154,8 +158,8 @@ class SudokuSolverGUI:
         for row in range(grid_size):
             for col in range(grid_size):
                 value = predefined_puzzle[row][col]
-                self.entries[row][col].delete(0, tk.END)
                 if value != 0:
+                    self.entries[row][col].delete(0, tk.END)
                     self.entries[row][col].insert(0, str(value))
 
     def get_predefined_puzzle(self, grid_size):
@@ -169,13 +173,14 @@ class SudokuSolverGUI:
             ]
         elif grid_size == 6:
             return [
-                [0, 0, 0, 0, 3, 0],
-                [0, 0, 0, 5, 0, 0],
-                [0, 0, 0, 0, 0, 4],
-                [5, 0, 0, 4, 0, 0],
-                [0, 1, 0, 0, 0, 0],
-                [4, 0, 3, 0, 0, 0]
+                [2, 0, 0, 1, 5, 0],
+                [0, 0, 0, 0, 0, 0],
+                [4, 5, 2, 3, 1, 0],
+                [1, 0, 0, 0, 0, 4],
+                [6, 0, 0, 0, 0, 0],
+                [3, 0, 0, 6, 0, 5]
             ]
+
         elif grid_size == 9:
             return [
                 [5, 3, 0, 0, 7, 0, 0, 0, 0],
@@ -188,6 +193,26 @@ class SudokuSolverGUI:
                 [0, 0, 0, 4, 1, 9, 0, 0, 5],
                 [0, 0, 0, 0, 8, 0, 0, 7, 9]
             ]
+        elif grid_size == 16:
+            return [
+                        [8, 0, 0, 7, 4, 0, 0, 0, 9, 0, 1, 0, 0, 0, 5, 0],
+                        [0, 0, 9, 0, 0, 0, 0, 0, 0, 6, 0, 0, 7, 0, 0, 0],
+                        [0, 4, 0, 0, 0, 0, 3, 0, 0, 5, 8, 0, 0, 9, 0, 0],
+                        [0, 0, 0, 0, 7, 0, 0, 0, 8, 0, 0, 0, 0, 0, 3, 0],
+                        [0, 2, 0, 0, 6, 0, 0, 1, 0, 0, 9, 0, 0, 4, 0, 0],
+                        [4, 1, 0, 0, 0, 3, 9, 2, 0, 0, 0, 0, 6, 0, 0, 0],
+                        [0, 3, 0, 6, 0, 0, 0, 0, 7, 0, 0, 0, 8, 2, 4, 0],
+                        [0, 0, 0, 0, 2, 0, 0, 3, 0, 9, 0, 1, 0, 0, 7, 0],
+                        [1, 9, 3, 0, 0, 7, 0, 0, 6, 0, 0, 2, 4, 0, 0, 0],
+                        [0, 0, 0, 1, 0, 0, 0, 8, 0, 0, 7, 0, 0, 6, 0, 0],
+                        [0, 0, 0, 0, 0, 8, 0, 0, 4, 0, 5, 6, 0, 1, 0, 0],
+                        [5, 0, 0, 3, 0, 9, 0, 0, 1, 0, 0, 0, 7, 0, 0, 0],
+                        [0, 6, 7, 0, 0, 0, 0, 0, 2, 0, 0, 4, 0, 0, 0, 1],
+                        [0, 0, 0, 8, 5, 0, 0, 0, 0, 0, 3, 0, 6, 2, 0, 0],
+                        [0, 5, 2, 0, 1, 0, 8, 0, 0, 0, 0, 9, 7, 0, 0, 0],
+                        [0, 0, 4, 0, 8, 0, 0, 6, 3, 0, 0, 0, 0, 5, 1, 0]
+                    ]
+
 
     def make_your_puzzle(self):
         """Allow the user to create their puzzle after selecting grid size."""
@@ -213,43 +238,41 @@ class SudokuSolverGUI:
             widget.delete(0, tk.END)
 
     def solve_puzzle(self):
-            """Solve the puzzle using the selected algorithm."""
-            puzzle = self.get_puzzle()
-            algorithm = self.algorithm_var.get()
+        """Solve the puzzle using the selected algorithm."""
+        puzzle = self.get_puzzle()
+        algorithm = self.algorithm_var.get()
 
-            start_time = time()  # Start timing
+        start_time = time()  # Start timing
 
-            if algorithm == "Backtracking":
-                puzzle_copy = [row[:] for row in puzzle]
-                subgrid_rows, subgrid_cols = self.get_subgrid_dimensions(self.grid_size)
-                if solve_with_backtracking(puzzle_copy, subgrid_rows, subgrid_cols):
-                    self.display_solution(puzzle_copy)
-                    time_taken = time() - start_time
-                    self.metrics_label.config(
-                        text=f"Performance Metrics: Algorithm: Backtracking | Time Taken: {time_taken:.4f} seconds"
-                    )
-                else:
-                    messagebox.showerror("Error", "No solution exists for the given puzzle.")
-            elif algorithm == "Genetic Algorithm":
-                solution, generations = genetic_algorithm(puzzle, n=self.grid_size)
+        if algorithm == "Backtracking":
+            puzzle_copy = [row[:] for row in puzzle]
+            subgrid_rows, subgrid_cols = self.get_subgrid_dimensions(self.grid_size)
+            if solve_with_backtracking(puzzle_copy, subgrid_rows, subgrid_cols):
+                self.display_solution(puzzle_copy)
                 time_taken = time() - start_time
-                if solution:
-                    self.display_solution(solution)
-                    self.metrics_label.config(
-                        text=f"Performance Metrics: Algorithm: Genetic Algorithm | Generations: {generations} | Time Taken: {time_taken:.4f} seconds"
-                    )
-                else:
-                    messagebox.showerror("Error", "No solution found using Genetic Algorithm.")    
+                self.metrics_label.config(
+                    text=f"Performance Metrics: Algorithm: Backtracking | Time Taken: {time_taken:.4f} seconds"
+                )
+            else:
+                messagebox.showerror("Error", "No solution exists for the given puzzle.")
+        elif algorithm == "Genetic Algorithm":
+            solution, generations = genetic_algorithm(puzzle, n=self.grid_size)
+            time_taken = time() - start_time
+            if solution:
+                self.display_solution(solution)
+                self.metrics_label.config(
+                    text=f"Performance Metrics: Algorithm: Genetic Algorithm | Generations: {generations} | Time Taken: {time_taken:.4f} seconds"
+                )
+            else:
+                messagebox.showerror("Error", "No solution found using Genetic Algorithm.")    
 
 
     def get_subgrid_dimensions(self, grid_size):
-        """Return subgrid dimensions for the given grid size."""
-        if grid_size == 4:
-            return 2, 2
-        elif grid_size == 6:
-            return 3, 2
-        elif grid_size == 9:
-            return 3, 3
+        """Calculate subgrid dimensions for the given grid size."""
+        for i in range(1, int(grid_size**0.5) + 1):
+            if grid_size % i == 0:
+                subgrid_rows, subgrid_cols = i, grid_size // i
+        return subgrid_rows, subgrid_cols
 
 
 # Main function to run the GUI
@@ -257,3 +280,5 @@ if __name__ == "__main__":
     root = tk.Tk()
     app = SudokuSolverGUI(root)
     root.mainloop()
+
+sys.setrecursionlimit(10000)
