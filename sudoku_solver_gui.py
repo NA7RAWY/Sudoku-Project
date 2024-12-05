@@ -93,28 +93,44 @@ class SudokuSolverGUI:
         for row in range(self.grid_size):
             row_entries = []
             for col in range(self.grid_size):
-                # Create grid entries
                 entry = tk.Entry(self.grid_frame, width=2, font=("Arial", 16), justify="center", bg="white")
-
-                # Add padding and borders for sub-grids
                 top_border = 2 if row % subgrid_rows == 0 and row != 0 else 1
                 left_border = 2 if col % subgrid_cols == 0 and col != 0 else 1
                 entry.grid(row=row, column=col, padx=(left_border, 1), pady=(top_border, 1))
-
                 entry.bind("<KeyRelease>", self.validate_input)
                 row_entries.append(entry)
             self.entries.append(row_entries)
 
+
     def validate_input(self, event):
         """Validate the input in the Sudoku grid."""
         widget = event.widget
-        value = widget.get().strip()
+        value = widget.get().strip().upper()  # Convert to uppercase for consistency
 
-        # Determine valid inputs for the current grid size
-        valid_inputs = [str(i) for i in range(1, self.grid_size + 1)]
+        # Get valid inputs based on the current grid size
+        valid_inputs = self.get_valid_inputs(self.grid_size)
 
-        if value not in valid_inputs:
-            widget.delete(0, tk.END)
+        # Check if the entered value is valid
+        if value not in valid_inputs and value != "":
+            widget.delete(0, tk.END)  # Clear invalid input
+            widget.insert(0, "")  # Set the input to an empty string
+            messagebox.showwarning(
+                "Invalid Input", f"Please enter a valid input. Valid range: {', '.join(valid_inputs)}"
+            )
+        else:
+            # Additional check for numbers above the grid size
+            try:
+                number = int(value)
+                if number > self.grid_size:
+                    widget.delete(0, tk.END)  # Clear invalid input
+                    widget.insert(0, "")  # Set the input to an empty string
+                    messagebox.showwarning(
+                        "Invalid Input", f"Please enter a number less than or equal to {self.grid_size}."
+                    )
+            except ValueError:
+                # Handle non-numeric input (already handled by the previous check)
+                pass
+
 
 
     def get_puzzle(self):
@@ -133,7 +149,12 @@ class SudokuSolverGUI:
         for row in range(self.grid_size):
             for col in range(self.grid_size):
                 self.entries[row][col].delete(0, tk.END)
-                self.entries[row][col].insert(0, str(solution[row][col]))
+                value = solution[row][col]
+                # Display hexadecimal characters for 16x16 grid
+                if isinstance(value, int) and value > 9:
+                    value = chr(value + 55)  # Convert 10-15 to A-G
+                self.entries[row][col].insert(0, str(value))
+
 
     def clear_puzzle(self):
         """Clear the Sudoku grid."""
@@ -195,34 +216,58 @@ class SudokuSolverGUI:
             ]
         elif grid_size == 16:
             return [
-                        [8, 0, 0, 7, 4, 0, 0, 0, 9, 0, 1, 0, 0, 0, 5, 0],
-                        [0, 0, 9, 0, 0, 0, 0, 0, 0, 6, 0, 0, 7, 0, 0, 0],
-                        [0, 4, 0, 0, 0, 0, 3, 0, 0, 5, 8, 0, 0, 9, 0, 0],
-                        [0, 0, 0, 0, 7, 0, 0, 0, 8, 0, 0, 0, 0, 0, 3, 0],
-                        [0, 2, 0, 0, 6, 0, 0, 1, 0, 0, 9, 0, 0, 4, 0, 0],
-                        [4, 1, 0, 0, 0, 3, 9, 2, 0, 0, 0, 0, 6, 0, 0, 0],
-                        [0, 3, 0, 6, 0, 0, 0, 0, 7, 0, 0, 0, 8, 2, 4, 0],
-                        [0, 0, 0, 0, 2, 0, 0, 3, 0, 9, 0, 1, 0, 0, 7, 0],
-                        [1, 9, 3, 0, 0, 7, 0, 0, 6, 0, 0, 2, 4, 0, 0, 0],
-                        [0, 0, 0, 1, 0, 0, 0, 8, 0, 0, 7, 0, 0, 6, 0, 0],
-                        [0, 0, 0, 0, 0, 8, 0, 0, 4, 0, 5, 6, 0, 1, 0, 0],
-                        [5, 0, 0, 3, 0, 9, 0, 0, 1, 0, 0, 0, 7, 0, 0, 0],
-                        [0, 6, 7, 0, 0, 0, 0, 0, 2, 0, 0, 4, 0, 0, 0, 1],
-                        [0, 0, 0, 8, 5, 0, 0, 0, 0, 0, 3, 0, 6, 2, 0, 0],
-                        [0, 5, 2, 0, 1, 0, 8, 0, 0, 0, 0, 9, 7, 0, 0, 0],
-                        [0, 0, 4, 0, 8, 0, 0, 6, 3, 0, 0, 0, 0, 5, 1, 0]
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
                     ]
 
 
     def make_your_puzzle(self):
         """Allow the user to create their puzzle after selecting grid size."""
         grid_size = simpledialog.askinteger(
-            "Choose Grid Size", "Enter grid size (4, 6, or 9):", parent=self.root, minvalue=4, maxvalue=9
+            "Choose Grid Size", "Enter grid size (4, 6, 9, or 16):", parent=self.root, minvalue=4, maxvalue=16
         )
-        if grid_size not in [4, 6, 9]:
+        if grid_size not in [4, 6, 9, 16]:
             messagebox.showerror("Error", "Invalid grid size selected.")
             return
+
+        # Create the grid for the selected size
         self.create_grid(grid_size)
+
+        # Set up input validation dynamically for the selected grid size
+        for row_entries in self.entries:
+            for entry in row_entries:
+                entry.bind("<KeyRelease>", self.validate_input)
+
+        # Provide instructions to the user
+        valid_inputs = self.get_valid_inputs(grid_size)
+
+    def get_valid_inputs(self, grid_size):
+        """Return valid inputs for the grid size."""
+        if grid_size == 4:
+            return [str(i) for i in range(1, 5)]  # 1 to 4
+        elif grid_size == 6:
+            return [str(i) for i in range(1, 7)]  # 1 to 6
+        elif grid_size == 9:
+            return [str(i) for i in range(1, 10)]  # 1 to 9
+        elif grid_size == 16:
+            # 1-9 and A-F for 16x16 grids
+            return [str(i) for i in range(1, 10)] + [chr(i) for i in range(ord('A'), ord('G') + 1)]
+        else:
+            return []  # Empty for unsupported sizes
 
     def return_to_main_menu(self):
         """Return to the main menu."""
@@ -241,6 +286,7 @@ class SudokuSolverGUI:
         """Solve the puzzle using the selected algorithm."""
         puzzle = self.get_puzzle()
         algorithm = self.algorithm_var.get()
+        subgrid_rows, subgrid_cols = self.get_subgrid_dimensions(self.grid_size)
 
         start_time = time()  # Start timing
 
@@ -269,10 +315,17 @@ class SudokuSolverGUI:
 
     def get_subgrid_dimensions(self, grid_size):
         """Calculate subgrid dimensions for the given grid size."""
-        for i in range(1, int(grid_size**0.5) + 1):
-            if grid_size % i == 0:
-                subgrid_rows, subgrid_cols = i, grid_size // i
-        return subgrid_rows, subgrid_cols
+        if grid_size == 4:
+            return 2, 2  # 4×4 grid has 2×2 sub-grids
+        elif grid_size == 6:
+            return 2, 3  # 6×6 grid has 2×3 sub-grids
+        elif grid_size == 9:
+            return 3, 3  # 9×9 grid has 3×3 sub-grids
+        elif grid_size == 16:
+            return 4, 4  # 16×16 grid has 4×4 sub-grids
+        else:
+            raise ValueError("Unsupported grid size.")
+
 
 
 # Main function to run the GUI
