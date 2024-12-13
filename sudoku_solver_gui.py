@@ -275,12 +275,6 @@ class SudokuSolverGUI:
 
         os.execv(sys.executable, ['python'] + sys.argv)
 
-    def validate_input(self, event):
-        """Validate the input in the Sudoku grid."""
-        widget = event.widget
-        value = widget.get().strip()
-        if not (value.isdigit() and 1 <= int(value) <= 9):
-            widget.delete(0, tk.END)
 
     def solve_puzzle(self):
         """Solve the puzzle using the selected algorithm."""
