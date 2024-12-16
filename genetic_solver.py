@@ -2,7 +2,7 @@ import random
 import math
 
 def create_population(size, puzzle, n):
-    """Generate a population of random Sudoku boards."""
+    """Generate a population of random Sudoku boards without modifying the original puzzle."""
     population = []
     for _ in range(size):
         individual = [[puzzle[row][col] if puzzle[row][col] != 0 else random.randint(1, n) for col in range(n)] for row in range(n)]
@@ -39,17 +39,15 @@ def fitness(individual, n):
 
     return score
 
-
-
-def mutate(individual, puzzle, n, mutation_rate=0.35):
-    """Apply random mutation to an individual."""
+def mutate(individual, puzzle, n, mutation_rate=1.3):
+    """Apply random mutation to an individual while preserving the original puzzle's fixed values."""
     subgrid_height, subgrid_width = get_subgrid_size(n)
     
     for _ in range(int(mutation_rate * n * n)):
         row = random.randint(0, n-1)
         col = random.randint(0, n-1)
 
-        if puzzle[row][col] == 0:  # Only mutate empty cells
+        if puzzle[row][col] == 0:  # Only mutate empty cells in the original puzzle
             current_values = set(individual[row]) | \
                             set([individual[i][col] for i in range(n)]) | \
                             set([individual[r][c] 
@@ -66,21 +64,22 @@ def mutate(individual, puzzle, n, mutation_rate=0.35):
         if random.random() < 0.1:
             row2 = random.randint(0, n-1)
             col2 = random.randint(0, n-1)
-            if (row != row2 or col != col2):
+            if puzzle[row2][col2] == 0 and (row != row2 or col != col2):  # Swap only non-fixed cells
                 individual[row][col], individual[row2][col2] = individual[row2][col2], individual[row][col]
     return individual
 
-
-def crossover(parent1, parent2, n):
-    """Perform crossover between two parents."""
+def crossover(parent1, parent2, puzzle, n):
+    """Perform crossover between two parents while preserving the original puzzle's fixed values."""
     child = []
     subgrid_size = int(math.sqrt(n))
     for row in range(n):
-        # Randomly choose rows from either parent
-        if random.random() < 0.5:
-            child.append(parent1[row][:])
-        else:
-            child.append(parent2[row][:])
+        new_row = []
+        for col in range(n):
+            if puzzle[row][col] != 0:  # Preserve original fixed values
+                new_row.append(puzzle[row][col])
+            else:
+                new_row.append(parent1[row][col] if random.random() < 0.5 else parent2[row][col])
+        child.append(new_row)
 
     # Ensure subgrids are consistent after crossover
     for row in range(0, n, subgrid_size):
@@ -95,13 +94,13 @@ def crossover(parent1, parent2, n):
             
             for r in range(row, row + subgrid_size):
                 for c in range(col, col + subgrid_size):
-                    if subgrid.count(child[r][c]) > 1:  # Replace duplicates
+                    if puzzle[r][c] == 0 and subgrid.count(child[r][c]) > 1:  # Replace duplicates
                         if missing_numbers:
                             child[r][c] = missing_numbers.pop(0)
     return child
 
 def genetic_algorithm(puzzle, n, population_size=100, generations=2000):
-    """Solve Sudoku using a Genetic Algorithm."""
+    """Solve Sudoku using a Genetic Algorithm without modifying the original puzzle."""
     population = create_population(population_size, puzzle, n)
     
     best_fitness = 0
@@ -126,8 +125,8 @@ def genetic_algorithm(puzzle, n, population_size=100, generations=2000):
         next_generation = []
         for _ in range(population_size // 2):
             parent1, parent2 = random.sample(population[:10], 2)  # Select top 10 parents
-            child1 = crossover(parent1, parent2, n)
-            child2 = crossover(parent2, parent1, n)
+            child1 = crossover(parent1, parent2, puzzle, n)
+            child2 = crossover(parent2, parent1, puzzle, n)
             next_generation.extend([mutate(child1, puzzle, n), mutate(child2, puzzle, n)])
 
         population = next_generation
