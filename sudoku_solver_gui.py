@@ -150,9 +150,6 @@ class SudokuSolverGUI:
             for col in range(self.grid_size):
                 self.entries[row][col].delete(0, tk.END)
                 value = solution[row][col]
-                # Display hexadecimal characters for 16x16 grid
-                if isinstance(value, int) and value > 9:
-                    value = chr(value + 55)  # Convert 10-15 to A-G
                 self.entries[row][col].insert(0, str(value))
 
 
@@ -166,10 +163,10 @@ class SudokuSolverGUI:
     def load_puzzle(self):
         """Prompt the user to select the grid size and load a predefined puzzle."""
         grid_size = simpledialog.askinteger(
-            "Choose Grid Size", "Enter grid size (4, 6, 9, or 16):", parent=self.root, minvalue=4, maxvalue=16
+            "Choose Grid Size", "Enter grid size (4, 6, or 9):", parent=self.root, minvalue=4, maxvalue=16
         )
 
-        if grid_size not in [4, 6, 9, 16]:
+        if grid_size not in [4, 6, 9]:
             messagebox.showerror("Error", "Invalid grid size selected.")
             return
 
@@ -214,33 +211,14 @@ class SudokuSolverGUI:
                 [0, 0, 0, 4, 1, 9, 0, 0, 5],
                 [0, 0, 0, 0, 8, 0, 0, 7, 9]
             ]
-        elif grid_size == 16:
-            return [
-                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-                    ]
 
 
     def make_your_puzzle(self):
         """Allow the user to create their puzzle after selecting grid size."""
         grid_size = simpledialog.askinteger(
-            "Choose Grid Size", "Enter grid size (4, 6, 9, or 16):", parent=self.root, minvalue=4, maxvalue=16
+            "Choose Grid Size", "Enter grid size (4, 6, or 9):", parent=self.root, minvalue=4, maxvalue=16
         )
-        if grid_size not in [4, 6, 9, 16]:
+        if grid_size not in [4, 6, 9]:
             messagebox.showerror("Error", "Invalid grid size selected.")
             return
 
@@ -263,9 +241,6 @@ class SudokuSolverGUI:
             return [str(i) for i in range(1, 7)]  # 1 to 6
         elif grid_size == 9:
             return [str(i) for i in range(1, 10)]  # 1 to 9
-        elif grid_size == 16:
-            # 1-9 and A-F for 16x16 grids
-            return [str(i) for i in range(1, 10)] + [chr(i) for i in range(ord('A'), ord('G') + 1)]
         else:
             return []  # Empty for unsupported sizes
 
@@ -315,8 +290,6 @@ class SudokuSolverGUI:
             return 2, 3  # 6×6 grid has 2×3 sub-grids
         elif grid_size == 9:
             return 3, 3  # 9×9 grid has 3×3 sub-grids
-        elif grid_size == 16:
-            return 4, 4  # 16×16 grid has 4×4 sub-grids
         else:
             raise ValueError("Unsupported grid size.")
 
